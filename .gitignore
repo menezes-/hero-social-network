@@ -1,0 +1,10 @@
+### C++ template
+
+*.dll
+
+#
+.idea/
+
+bin/
+
+lib/

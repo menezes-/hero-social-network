@@ -1,0 +1,31 @@
+Desenvolvido em C++ com o compilador GCC versão 5.2
+Para compilar basta utilizar a versão mais recente do cmake: https://cmake.org/.
+Na pasta bin já existe um arquivo compilado basta executar
+Exemplo:
+    mkdir build && cd buidl
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make 
+ 
+ 
+para rodar:
+você precisa dos arquivos na pasta bin. 
+linha de comando: 
+
+MarvelNetwork-Release.exe hero-network-norm.csv 1 2000
+
+primeiro parametro: arquivo normalizado (pelo script normaliza.py)
+segundo parametro: metodo de desenho (como o grafo é organizado): 
+    1: posiciona os nodos aleatóriamente no mundo
+    2: posiciona os nodos em forma de circulo
+    3: posiciona conforme a popularidade: quanto mais afasto mais popular
+   
+   
+comandos: 
+a, w,s,d move a camera
+clicar no botão do meio do mouse: reseta o zoom 
+rodar a bolinha do mouse: aumeta e diminui o zoom
+
+q, e: aumenta e diminui o zoom 
+
+l: esconde os nomes dos herois
+k: mostra os nomes dos herois  

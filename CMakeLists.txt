@@ -45,10 +45,14 @@ SET_TARGET_PROPERTIES(GLEW PROPERTIES
 target_link_libraries(GLEW ${OPENGL_LIBRARIES})
 #======================GLEW=====================
 
-#======================SDL2=====================
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR})
-#======================SDL2=====================
+#======================GLFW=====================
+set(GLFW_BUILD_EXAMPLES NO)
+set(GLFW_BUILD_TESTS NO)
+set(GLFW_BUILD_DOCS NO)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/GLFW/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/GLFW/include)
+#======================GLFW=====================
 
 find_package(Freetype REQUIRED)
 include_directories(${FREETYPE_INCLUDE_DIRS})
@@ -66,7 +70,9 @@ set(SOURCE_FILES
         src/Scene.cpp
         include/Scene.hpp
         include/utils.hpp
-        include/dbg.hpp src/FontAtlas.cpp include/FontAtlas.hpp)
+        include/dbg.hpp
+        src/FontAtlas.cpp
+        include/FontAtlas.hpp)
 
 add_executable(marvel_network ${SOURCE_FILES})
 
@@ -81,7 +87,7 @@ else ()
     add_definitions(-DCSV_IO_NO_THREAD)
 endif ()
 
-target_link_libraries(marvel_network ${SDL2_LIBRARY} GLEW ${FREETYPE_LIBRARIES})
+target_link_libraries(marvel_network GLEW ${FREETYPE_LIBRARIES} glfw ${GLFW_LIBRARIES})
 
 add_custom_command(TARGET marvel_network POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

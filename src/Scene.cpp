@@ -23,9 +23,9 @@ void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) 
     glBindVertexArray(0);
 }
 
-Scene::Scene(const Graphics &graphics, const FontAtlas &fontAtlas)
-        : graphics{graphics}, fontAtlas{fontAtlas}, projection{
-        glm::ortho(0.0f, static_cast<float>(graphics.getWidth()), 0.0f, static_cast<float>(graphics.getHeight()))} {
+Scene::Scene(int width, int height, const FontAtlas &fontAtlas)
+        : fontAtlas{fontAtlas}, projection{
+        glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height))}, oWidth{width}, oHeight{height} {
 
     mt = radomNumberGenerator();
     dist_pos = std::uniform_int_distribution<>(-10000, 10000);
@@ -35,14 +35,15 @@ Scene::Scene(const Graphics &graphics, const FontAtlas &fontAtlas)
     text = make_unique<Shader>("shaders\\text.vs.glsl", "shaders\\text.fs.glsl");
     text->setUniform1i("text", 0);
 
-    w = graphics.getWidth();
-    h = graphics.getHeight();
+    windowWidth = oWidth;
+    windowHeight = oHeight;
 
     txtVertex = std::vector<TextVertice>{};
 
-    cameraPos = glm::vec3{w / 2, h / 2, 0};
+    cameraPos = glm::vec3{windowWidth / 2, windowHeight / 2, 0};
     updateProjectionMatrix();
     updateViewMatrix();
+    adjustCameraSpeed();
 }
 
 
@@ -110,7 +111,7 @@ void Scene::makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::st
         x += info.Advance.x;
         y += info.Advance.y;
 
-        if (!w || !h) { // caracteres que não tem tamanho são pulados, tipo espaço
+        if (!windowWidth || !windowHeight) { // caracteres que não tem tamanho são pulados, tipo espaço
             continue;
         }
 
@@ -136,79 +137,92 @@ void Scene::makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::st
     }
 }
 
+void Scene::processInput(double dt) {
+    float deltaTime = static_cast<float>(dt);
 
-void Scene::handleKeyboard() {
-
-    static float deltaTime = 0.0f;
-    static float lastFrame = 0.0f;
-
-    float currentFrame = SDL_GetTicks();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
-    const auto *keys = SDL_GetKeyboardState(nullptr);
-
-    if (keys[SDL_SCANCODE_R]) { //reseta a posição da camera
-        cameraPos = glm::vec3{graphics.getWidth() / 2, graphics.getHeight() / 2, 0};
-        cameraFront = glm::vec3{0, 0, -3};
-        cameraUp = glm::vec3{0, 1, 0};
-
+    if (Keys[GLFW_KEY_D]) {
+        moveCamera(CameraDirection::RIGHT, deltaTime);
     }
-
-    float speed = cameraSpeed * deltaTime;
-
-    if (keys[SDL_SCANCODE_W]) {
-        cameraPos += speed * glm::vec3(0, 1, 0);
+    if (Keys[GLFW_KEY_A]) {
+        moveCamera(CameraDirection::LEFT, deltaTime);
     }
-
-    if (keys[SDL_SCANCODE_S]) {
-        cameraPos -= speed * glm::vec3(0, 1, 0);
+    if (Keys[GLFW_KEY_W]) {
+        moveCamera(CameraDirection::UP, deltaTime);
     }
-
-    if (keys[SDL_SCANCODE_A]) {
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+    if (Keys[GLFW_KEY_S]) {
+        moveCamera(CameraDirection::DOWN, deltaTime);
     }
-    if (keys[SDL_SCANCODE_D]) {
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-    }
-
-    if (keys[SDL_SCANCODE_E]) {
+    if (Keys[GLFW_KEY_E]) {
         zoom(0.8f);
     }
-
-    if (keys[SDL_SCANCODE_Q]) {
+    if (Keys[GLFW_KEY_Q]) {
         zoom(1.2f);
     }
-
-    if (keys[SDL_SCANCODE_L]) {
+    if (Keys[GLFW_KEY_R]) {
+        resetCamera();
+    }
+    if (Keys[GLFW_KEY_L]) {
         showLetters = false;
     }
-    if (keys[SDL_SCANCODE_K]) {
+    if (Keys[GLFW_KEY_K]) {
         showLetters = true;
     }
 
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-    updateViewMatrix();
 }
 
 void Scene::zoom(float scale) {
 
-    w *= scale;
-    h *= scale;
-    projection = glm::ortho(0.0f, w, 0.0f, h);
+    windowWidth *= scale;
+    windowHeight *= scale;
+    projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight);
 
+    adjustCameraSpeed();
     updateProjectionMatrix();
 }
 
 void Scene::resetZoom() {
 
-    w = graphics.getWidth() / 2;
-    h = graphics.getHeight() / 2;
+    windowWidth = oWidth / 2.0f;
+    windowHeight = oHeight / 2.0f;
 
-    projection = glm::ortho(0.0f, w, 0.0f, h);
+    projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight);
 
+    adjustCameraSpeed();
     updateProjectionMatrix();
+
+}
+
+void Scene::resetCamera() {
+    cameraPos = glm::vec3{oWidth / 2, oHeight / 2, 0};
+    cameraFront = glm::vec3{0, 0, -3};
+    cameraUp = glm::vec3{0, 1, 0};
+
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    updateViewMatrix();
+
+}
+
+void Scene::moveCamera(CameraDirection direction, float deltaTime) {
+    auto speed = cameraSpeed * deltaTime;
+
+    switch (direction) {
+
+        case UP:
+            cameraPos += glm::vec3(0, 1, 0) * speed;
+            break;
+        case DOWN:
+            cameraPos -= glm::vec3(0, 1, 0) * speed;
+            break;
+        case LEFT:
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            break;
+        case RIGHT:
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            break;
+    }
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+    updateViewMatrix();
 
 }
 
@@ -232,8 +246,8 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
     auto lines = std::vector<Line>{};
     int e_counter = 0;
     std::size_t c = 0;
-    auto centerX = graphics.getWidth() / 2;
-    auto centerY = graphics.getHeight() / 2;
+    auto centerX = oWidth / 2;
+    auto centerY = oHeight / 2;
     auto getPos = [&](const std::string &name, std::size_t id) {
 
 
@@ -378,3 +392,9 @@ Scene::~Scene() {
     glDeleteBuffers(3, vbos);
 
 }
+
+void Scene::adjustCameraSpeed() {
+    cameraSpeed = glm::vec3{0.2f * windowHeight, 0.2f * windowWidth, 1};
+}
+
+

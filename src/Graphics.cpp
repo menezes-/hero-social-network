@@ -9,37 +9,25 @@ Graphics::Graphics(int width, int height) : width(width),
 
 void Graphics::setup() {
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
-        throw std::runtime_error{"Nao foi possivel inicializar a biblioteca SDL2"};
+    if (!glfwInit()) {
+        throw std::runtime_error{"Nao foi possivel inicializar a biblioteca GLFW 3"};
     }
 
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    window = SDL_CreateWindow("Marvel Social Network", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
-                              height,
-                              SDL_WINDOW_OPENGL);
+    window = glfwCreateWindow(width, height, "Marvel Social Network", nullptr, nullptr);
 
-    if (!window) {
-        std::string erro{"Nao foi possivel iniciar a janela! " + std::string{SDL_GetError()}};
+    if (window == nullptr) {
+        std::string erro{"Nao foi possivel iniciar a janela!"};
         throw std::runtime_error{erro};
     }
 
 
-    glContext = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, glContext);
+    glfwMakeContextCurrent(window);
 
 
     glewExperimental = GL_TRUE;
@@ -48,11 +36,14 @@ void Graphics::setup() {
         throw std::runtime_error{std::string{"Nao foi possivel inicializar o glew! "}};
     }
 
+    //configua o viewport
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    glfwSwapInterval(1);
+
     //glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    SDL_GL_SetSwapInterval(-1);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -60,13 +51,9 @@ void Graphics::setup() {
     std::cout << "OpenGL Version " << glGetString(GL_VERSION) << std::endl;
     std::cout << "Shader Language Version " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 #endif
-
-    glViewport(0, 0, width, height);
-
-
 }
 
-SDL_Window *Graphics::getWindow() const {
+GLFWwindow *Graphics::getWindow() const {
     return window;
 }
 
@@ -79,10 +66,7 @@ int Graphics::getHeight() const {
 }
 
 Graphics::~Graphics() {
-    SDL_GL_DeleteContext(glContext);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
+    glfwTerminate();
 }
 
 

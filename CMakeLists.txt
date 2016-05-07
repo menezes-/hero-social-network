@@ -61,8 +61,6 @@ set(SOURCE_FILES
         main.cpp
         include/Graph.hpp
         src/Graph.cpp
-        src/Graphics.cpp
-        include/Graphics.hpp
         src/Drawable.cpp
         include/Drawable.hpp
         src/Shader.cpp

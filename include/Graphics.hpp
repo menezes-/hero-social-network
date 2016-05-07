@@ -2,7 +2,7 @@
 #define GLEW_STATIC
 
 #include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include <GLFW/glfw3.h>
 #include <unordered_map>
 #include <glm/glm.hpp>
 #include <vector>
@@ -12,7 +12,7 @@ class Graphics {
 public:
     Graphics(int width, int height);
 
-    SDL_Window *getWindow() const;
+    GLFWwindow *getWindow() const;
 
     int getWidth() const;
 
@@ -25,8 +25,7 @@ public:
 private:
     int width;
     int height;
-    SDL_Window *window;
-    SDL_GLContext glContext;
+    GLFWwindow *window;
     void setup();
 
 

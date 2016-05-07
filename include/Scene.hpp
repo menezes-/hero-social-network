@@ -2,7 +2,6 @@
 
 #include "Shader.hpp"
 #include "Drawable.hpp"
-#include "Graphics.hpp"
 #include "Graph.hpp"
 #include "FontAtlas.hpp"
 #include <memory>
@@ -11,12 +10,18 @@
 #include <glm/glm.hpp>
 
 
-
 enum Mode : short {
     RANDOM = 1,
     CIRCLE = 2,
     POPULAR = 3
 
+};
+
+enum CameraDirection : short {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
 };
 
 struct TextVertice {
@@ -40,13 +45,12 @@ class Scene {
 private:
     std::unique_ptr<Shader> primitive;
     std::unique_ptr<Shader> text;
-    const Graphics &graphics;
     const FontAtlas &fontAtlas;
 
     glm::vec3 cameraPos;
     glm::vec3 cameraFront{0, 0, -3};
     glm::vec3 cameraUp{0, 1, 0};
-    float cameraSpeed = 10.0f;
+    glm::vec3 cameraSpeed;
 
     glm::mat4 view;
     glm::mat4 projection;
@@ -59,10 +63,12 @@ private:
 
     bool showLetters = false;
 
-    float w, h;
+    int oWidth, oHeight; // tamanho da window original
+    GLfloat windowWidth, windowHeight;
+
     GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO;
 
-    std::size_t trigVertexCount=0, lineVertexCount=0;
+    std::size_t trigVertexCount = 0, lineVertexCount = 0;
 
     glm::vec2 genPosition();
 
@@ -75,7 +81,7 @@ private:
     void fillTextBuff();
 
 public:
-    Scene(const Graphics &, const FontAtlas &);
+    Scene(int width, int height, const FontAtlas &);
 
     Scene(Scene &&) = default;
 
@@ -88,7 +94,7 @@ public:
 
     void makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto);
 
-    void handleKeyboard();
+    void moveCamera(CameraDirection direction, float deltaTime);
 
     void zoom(float);
 
@@ -96,8 +102,16 @@ public:
 
     void resetZoom();
 
+    void resetCamera();
+
     void fromGraph(const Graph &graph, Mode mode, int limit = 1000);
 
+    void processInput(double deltaTime);
+
+    std::bitset<1024> Keys{false};
+
     virtual ~Scene();
+
+    void adjustCameraSpeed();
 };
 

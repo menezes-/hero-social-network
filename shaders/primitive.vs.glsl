@@ -11,6 +11,4 @@ void main()
 {
     gl_Position = projection * view * vec4(position.xy, 0.0f, 1.0f);
     ourColor = color;
-
-
 }

@@ -1,11 +1,12 @@
 #include "include/Graphics.hpp"
 #include "include/Graph.hpp"
 #include "include/Scene.hpp"
+#include "include/FontAtlas.hpp"
 
 int main(int argc, char *argv[]) {
 
 
-    Graphics graphics{1270, 720};
+    Graphics graphics{1280, 720};
     auto window = graphics.getWindow();
     auto str = std::string{argv[1]};
     auto mode = std::atoi(argv[2]);
@@ -15,7 +16,9 @@ int main(int argc, char *argv[]) {
     } else {
         limit = 1000;
     }
-    auto scene = Scene{graphics};
+
+    auto atlas = FontAtlas{20, "Aileron.otf"};
+    auto scene = Scene{graphics, atlas};
 
     Graph graph{str};
     scene.fromGraph(graph, static_cast<Mode>(mode), limit);
@@ -55,8 +58,5 @@ int main(int argc, char *argv[]) {
         SDL_GL_SwapWindow(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     }
-
-    return 0;
 }

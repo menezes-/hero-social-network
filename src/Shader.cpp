@@ -1,20 +1,23 @@
 #include "../include/Shader.hpp"
 #include <fstream>
-#include <vector>
 #include <iostream>
+#include <cstring>
 
-std::string Shader::readFile(const char *filename) {
+std::string Shader::readFile(const std::string &filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (in) {
         return (std::string{(std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>()});
     }
-    throw (errno);
+    throw (strerror(errno));
 }
 
-Shader::Shader(const char *vertexPath, const char *fragmentPath) {
+Shader::Shader(const char *vertexPathp, const char *fragmentPathp) : vertexPath{vertexPathp},
+                                                                     fragmentPath{fragmentPathp} {
 
-    auto vertexShader = createShader(GL_VERTEX_SHADER, readFile(vertexPath));
-    auto fragmentShader = createShader(GL_FRAGMENT_SHADER, readFile(fragmentPath));
+    vertexCode = readFile(vertexPath);
+    fragmentCode = readFile(fragmentPath);
+    auto vertexShader = createShader(GL_VERTEX_SHADER, vertexCode);
+    auto fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentCode);
 
     program = glCreateProgram();
     glAttachShader(program, vertexShader);
@@ -26,16 +29,11 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
 
     if (success == GL_FALSE) {
 
-        GLint info_log_length;
-        glGetShaderiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
-
-        std::vector<char> shader_log(info_log_length);
-        glGetShaderInfoLog(program, info_log_length, NULL, &shader_log[0]);
-        throw std::runtime_error{std::string{std::string{"ERROR linkando o shader: "} + std::string{&shader_log[0]}}};
+        std::vector<char> infoLog(100);
+        glGetShaderInfoLog(program, 8096, nullptr, &infoLog[0]);
+        throw std::runtime_error{std::string{std::string{"ERROR linkando o shader: "} + std::string{&infoLog[0]}}};
 
     }
-
-
 }
 
 GLuint Shader::createShader(GLenum type, const std::string &code) {
@@ -51,13 +49,10 @@ GLuint Shader::createShader(GLenum type, const std::string &code) {
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 
     if (success == GL_FALSE) {
-        GLint info_log_length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &info_log_length);
 
-        std::vector<char> shader_log(info_log_length);
-        glGetShaderInfoLog(id, info_log_length, nullptr, &shader_log[0]);
-
-        throw std::runtime_error{std::string{"ERROR Compilando shader: "} + std::string{&shader_log[0]}};
+        std::vector<char> infoLog(100);
+        glGetShaderInfoLog(program, 8096, nullptr, &infoLog[0]);
+        throw std::runtime_error{std::string{std::string{"ERROR Compilando shader: "} + std::string{&infoLog[0]}}};
 
     }
 
@@ -87,6 +82,13 @@ void Shader::setUniform3f(const char *uniform_name, const glm::vec3 &vec3) {
     glUniform3f(glGetUniformLocation(program, uniform_name), vec3.x, vec3.y, vec3.z);
 
 }
+
+void Shader::setUniform1i(const char *uniform_name, GLint i) {
+    glUniform1i(glGetUniformLocation(program, uniform_name), i);
+
+}
+
+
 
 
 

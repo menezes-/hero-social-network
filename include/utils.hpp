@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <random>
+#include <iterator>
 
 template<typename T, typename... Args>
 inline std::unique_ptr<T> make_unique(Args &&... args) {
@@ -15,12 +16,9 @@ inline std::mt19937 radomNumberGenerator() {
     return result;
 }
 
-template<class T>
-inline const T &max(const T &a, const T &b) {
-    return (a < b) ? b : a;
-}
 
-template<class T>
-inline const T &min(const T &a, const T &b) {
-    return (b < a) ? b : a;
+template<class T, std::size_t N>
+std::ostream &operator<<(std::ostream &o, const std::array<T, N> &arr) {
+    std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
+    return o;
 }

@@ -9,9 +9,14 @@ class Shader {
 private:
     GLuint program;
 
-    std::string readFile(const char *filename);
+    std::string readFile(const std::string &filename);
 
     GLuint createShader(GLenum type, const std::string &code);
+
+    std::string vertexPath;
+    std::string fragmentPath;
+    std::string fragmentCode;
+    std::string vertexCode;
 
 
 public:
@@ -23,6 +28,12 @@ public:
 
     void setMatrix4fv(const char* uniform_name, const GLfloat *value);
     void setUniform3f(const char* uniform_name, const glm::vec3&);
+    void setUniform1i(const char* uniform_name, GLint i);
+
+
+    Shader(Shader &&) = default;
+
+    Shader &operator=(Shader &&) = default;
 
 
     GLuint getProgram() const {

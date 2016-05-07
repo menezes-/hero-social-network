@@ -4,10 +4,13 @@
 #include "Drawable.hpp"
 #include "Graphics.hpp"
 #include "Graph.hpp"
+#include "FontAtlas.hpp"
 #include <memory>
 #include <vector>
 #include <bitset>
 #include <glm/glm.hpp>
+
+
 
 enum Mode : short {
     RANDOM = 1,
@@ -16,13 +19,29 @@ enum Mode : short {
 
 };
 
+struct TextVertice {
+    GLfloat TextX; // posição na tela
+    GLfloat TextY; // posição na tela
+    GLfloat TextureX; // posição da textura
+    GLfloat TextureY; // posição da textura
+    //cores
+    GLfloat r;
+    GLfloat g;
+    GLfloat b;
+};
+
+using Triangle = std::array<GLfloat, 18>;
+using Line = std::array<GLfloat, 12>;
+
+template<class T, class A>
+void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data);
+
 class Scene {
 private:
-    std::vector<std::unique_ptr<Drawable>> objects;
-    std::unique_ptr<Shader> triangle;
+    std::unique_ptr<Shader> primitive;
     std::unique_ptr<Shader> text;
-    std::unique_ptr<Shader> line;
     const Graphics &graphics;
+    const FontAtlas &fontAtlas;
 
     glm::vec3 cameraPos;
     glm::vec3 cameraFront{0, 0, -3};
@@ -36,6 +55,15 @@ private:
     std::uniform_int_distribution<> dist_pos;
     std::uniform_int_distribution<> dist_color;
 
+    std::vector<TextVertice> txtVertex;
+
+    bool showLetters = false;
+
+    float w, h;
+    GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO;
+
+    std::size_t trigVertexCount=0, lineVertexCount=0;
+
     glm::vec2 genPosition();
 
     glm::vec3 genColor();
@@ -44,16 +72,21 @@ private:
 
     void updateProjectionMatrix();
 
-    bool showLetters = false;
-
-    float w, h;
+    void fillTextBuff();
 
 public:
-    Scene(const Graphics &);
+    Scene(const Graphics &, const FontAtlas &);
 
-    void addTriangle(const glm::vec2 &pos, const glm::vec3 &color, const std::string &);
+    Scene(Scene &&) = default;
 
-    void addLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color, const glm::vec3 &color2);
+    Scene &operator=(Scene &&) = default;
+
+    Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
+
+    Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
+                  const glm::vec3 &color2);
+
+    void makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto);
 
     void handleKeyboard();
 
@@ -65,5 +98,6 @@ public:
 
     void fromGraph(const Graph &graph, Mode mode, int limit = 1000);
 
+    virtual ~Scene();
 };
 

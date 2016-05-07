@@ -5,7 +5,7 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wno-unused-parameter")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -march=native -O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -DNDEBUG")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -O0")
 
@@ -66,10 +66,7 @@ set(SOURCE_FILES
         src/Scene.cpp
         include/Scene.hpp
         include/utils.hpp
-        src/Triangle.cpp
-        include/Triangle.hpp
-        src/Text.cpp
-        include/Text.hpp include/dbg.hpp src/Line.cpp include/Line.hpp)
+        include/dbg.hpp src/FontAtlas.cpp include/FontAtlas.hpp)
 
 add_executable(marvel_network ${SOURCE_FILES})
 

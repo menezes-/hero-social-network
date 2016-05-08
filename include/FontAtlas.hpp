@@ -7,7 +7,7 @@
 
 constexpr int ASCII_START = 32;
 constexpr int ASCII_END = 128;
-constexpr unsigned int MAX_TEXTURE_WIDTH = 1024;
+constexpr unsigned int MAX_TEXTURE_WIDTH = 2048;
 
 
 struct CharacterInfo {

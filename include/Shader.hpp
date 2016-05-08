@@ -1,7 +1,9 @@
 #pragma once
 
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <unordered_map>
-#include "Graphics.hpp"
+#include <glm/glm.hpp>
 
 
 class Shader {

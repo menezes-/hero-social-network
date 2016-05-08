@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <vector>
 
 std::string Shader::readFile(const std::string &filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);

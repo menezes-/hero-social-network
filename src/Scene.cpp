@@ -1,6 +1,7 @@
 #include "../include/Scene.hpp"
 #include "../include/utils.hpp"
 #include <cmath>
+#include <GLFW/glfw3.h>
 
 template<class T, class A>
 void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) {

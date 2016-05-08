@@ -43,7 +43,7 @@ void FontAtlas::setupAtlas() {
             std::cerr << "WARNING::FREETYTPE: Nao foi possivel carregar  o glyph " << i << std::endl;
             continue;
         }
-        auto bw = g->bitmap.width;
+        auto bw = g->bitmap.width+1;
         auto bh = g->bitmap.rows;
 
         if (row_width + bw >= MAX_TEXTURE_WIDTH) {
@@ -75,6 +75,10 @@ void FontAtlas::setupAtlas() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlas_width, atlas_height, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
 
     /**
+     * TODO: NÃO FUNCIONA COM MAIS DE UMA LINHA DE TEXTURA
+     */
+
+    /**
      * preenche a textura com os glifos e grava as informações dos glifos
      */
     int offset_x = 0;
@@ -85,7 +89,7 @@ void FontAtlas::setupAtlas() {
             continue;
         }
 
-        if (offset_x + g->bitmap.width >= MAX_TEXTURE_WIDTH) { //muda a linha
+        if (offset_x + g->bitmap.width+1 >= MAX_TEXTURE_WIDTH) { //muda a linha
             offset_y += row_height;
             row_height = 0;
             offset_x = 0;
@@ -102,7 +106,7 @@ void FontAtlas::setupAtlas() {
         ci[i].OffsetY = offset_y / static_cast<GLfloat>(atlas_height);
 
         row_height = std::max(row_height, g->bitmap.rows);
-        offset_x += g->bitmap.width;
+        offset_x += g->bitmap.width+1;
 
     }
 

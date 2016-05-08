@@ -1,5 +1,6 @@
 #include "../include/Scene.hpp"
 #include "../include/utils.hpp"
+#include <cmath>
 
 template<class T, class A>
 void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) {
@@ -21,6 +22,27 @@ void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) 
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void makeCircle(std::vector<CircleVertice> &vertex, const glm::vec2 &center, const glm::vec3 &color) {
+    static int fragments = 100;
+    static int radius = 100;
+
+    GLfloat twicePI = 2.0f * PI;
+
+    GLfloat x = center.x;
+    GLfloat y = center.y;
+    for (int i = 0; i < fragments; ++i) {
+
+        vertex.emplace_back(CircleVertice{
+                x + (radius * std::cos(i * twicePI / fragments)),
+                y + (radius * std::sin(i * twicePI / fragments)),
+                0.0f,
+                color.r,
+                color.g,
+                color.b,
+        });
+    }
 }
 
 Scene::Scene(int width, int height, const FontAtlas &fontAtlas)
@@ -52,9 +74,10 @@ void Scene::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     primitive->enable();
 
-    glBindVertexArray(trigVAO);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(trigVertexCount));
+    glBindVertexArray(circleVAO);
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(circleVertexCount));
     glBindVertexArray(0);
+
 
     glBindVertexArray(lineVAO);
     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lineVertexCount));
@@ -71,15 +94,6 @@ void Scene::draw() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-}
-
-Triangle Scene::makeTriangle(const glm::vec2 &pos, const glm::vec3 &color) {
-
-    return Triangle {
-            pos.x, pos.y + 50, 0.0f, color.r, color.g, color.b,
-            pos.x - 50, pos.y - 50, 0.0f, color.r, color.g, color.b,
-            pos.x + 50, pos.y - 50, 0.0f, color.r, color.g, color.b
-    };
 }
 
 
@@ -199,6 +213,7 @@ void Scene::resetCamera() {
 
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     updateViewMatrix();
+    adjustCameraSpeed();
 
 }
 
@@ -242,7 +257,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
     auto colors = std::unordered_map<std::string, glm::vec3>();
     auto positions = std::unordered_map<std::string, glm::vec2>();
     auto t_drawed = std::vector<bool>(graph.vertices_size, false);
-    auto triangles = std::vector<Triangle>{};
+    auto circles = std::vector<CircleVertice>{};
     auto lines = std::vector<Line>{};
     int e_counter = 0;
     std::size_t c = 0;
@@ -304,7 +319,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto pos1 = getPos(name1, i);
                 auto color1 = getColor(name1);
                 if (!t_drawed[i]) {
-                    triangles.emplace_back(makeTriangle(pos1, color1));
+                    makeCircle(circles, pos1, color1);
                     makeText(pos1, color1, name1);
                 }
 
@@ -312,7 +327,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto pos2 = getPos(name2, j);
                 auto color2 = getColor(name2);
                 if (!t_drawed[j]) {
-                    triangles.emplace_back(makeTriangle(pos2, color2));
+                    makeCircle(circles, pos2, color2);
                     makeText(pos2, color2, name2);
                 }
                 lines.emplace_back(makeLine(pos1, pos2, color2, color1));
@@ -329,10 +344,10 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
 
     }
     fim:
-    fillPrimitiveBuff(trigVAO, trigVBO, triangles);
     fillPrimitiveBuff(lineVAO, lineVBO, lines);
+    fillPrimitiveBuff(circleVAO, circleVBO, circles);
 
-    trigVertexCount = triangles.size() * 3; // numero de vertices: total de triangules * 3 (tres vertices por triangulo)
+    circleVertexCount = circles.size() * 2;
     lineVertexCount = lines.size() * 2; // 2 vertices por linha, numero_de_linhas*2
     fillTextBuff();
 
@@ -385,8 +400,8 @@ void Scene::updateProjectionMatrix() {
 
 Scene::~Scene() {
 
-    GLuint vaos[] = {trigVAO, lineVAO, textVAO};
-    GLuint vbos[] = {trigVBO, lineVBO, textVBO};
+    GLuint vaos[] = {circleVAO, lineVAO, textVAO};
+    GLuint vbos[] = {circleVBO, lineVBO, textVBO};
 
     glDeleteVertexArrays(3, vaos);
     glDeleteBuffers(3, vbos);
@@ -394,7 +409,6 @@ Scene::~Scene() {
 }
 
 void Scene::adjustCameraSpeed() {
-    cameraSpeed = glm::vec3{0.2f * windowHeight, 0.2f * windowWidth, 1};
+    cameraSpeed = glm::vec3{ windowWidth*2,  windowHeight*2, 1};
 }
-
 

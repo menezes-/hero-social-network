@@ -32,7 +32,7 @@ Scene::Scene(int width, int height, const FontAtlas &fontAtlas)
     mt = radomNumberGenerator();
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     mt.seed(seed);
-    dist_pos = std::uniform_int_distribution<>(-20000, 20000);
+    dist_pos = std::uniform_int_distribution<>(-100000, 100000);
     dist_color = std::uniform_int_distribution<>(0, 255);
 
     primitive = make_unique<Shader>("shaders\\primitive.vs.glsl", "shaders\\primitive.fs.glsl");
@@ -262,7 +262,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
 
             if (mode == Mode::POPULAR || mode == Mode::CIRCLE) {
                 auto appe = graph.appearances[id];
-                auto radius_ex = (mode == Mode::POPULAR) ? (appe / 500.0f) * 5000 : 10000.0f;
+                auto radius_ex = (mode == Mode::POPULAR) ? (appe / 500.0f) * 10000 : dist_pos(mt);
                 float x, y;
                 if (c == 0) {
                     x = centerX;

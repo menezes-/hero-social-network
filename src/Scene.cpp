@@ -81,9 +81,9 @@ void Scene::draw() {
 Triangle Scene::makeTriangle(const glm::vec2 &pos, const glm::vec3 &color) {
 
     return Triangle {
-            pos.x, pos.y + 50, 0.0f, color.r, color.g, color.b,
-            pos.x - 50, pos.y - 50, 0.0f, color.r, color.g, color.b,
-            pos.x + 50, pos.y - 50, 0.0f, color.r, color.g, color.b
+            pos.x, pos.y + 200, 0.0f, color.r, color.g, color.b,
+            pos.x - 200, pos.y - 200, 0.0f, color.r, color.g, color.b,
+            pos.x + 200, pos.y - 200, 0.0f, color.r, color.g, color.b
     };
 }
 

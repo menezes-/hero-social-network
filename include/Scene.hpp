@@ -36,22 +36,11 @@ struct TextVertice {
     GLfloat b;
 };
 
-struct CircleVertice {
-    GLfloat x;
-    GLfloat y;
-    GLfloat z;
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-};
-
 using Triangle = std::array<GLfloat, 18>;
 using Line = std::array<GLfloat, 12>;
 
 template<class T, class A>
 void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data);
-
-void makeCircle(std::vector<CircleVertice> &vertex, const glm::vec2 &center, const glm::vec3 &color);
 
 class Scene {
 private:
@@ -78,9 +67,9 @@ private:
     int oWidth, oHeight; // tamanho da window original
     GLfloat windowWidth, windowHeight;
 
-    GLuint lineVAO, lineVBO, textVAO, textVBO, circleVAO, circleVBO;
+    GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO;
 
-    std::size_t circleVertexCount = 0, lineVertexCount = 0;
+    std::size_t trigVertexCount = 0, lineVertexCount = 0;
 
     glm::vec2 genPosition();
 
@@ -103,6 +92,8 @@ public:
                   const glm::vec3 &color2);
 
     void makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto);
+
+    Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
 
     void moveCamera(CameraDirection direction, float deltaTime);
 

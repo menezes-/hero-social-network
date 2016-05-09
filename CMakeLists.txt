@@ -76,7 +76,7 @@ set(SOURCE_FILES
         include/dbg.hpp
         src/FontAtlas.cpp
         include/FontAtlas.hpp
-        include/Config.cpp
+        src/Config.cpp
         include/Config.hpp)
 
 add_executable(marvel_network ${SOURCE_FILES})
@@ -97,3 +97,7 @@ target_link_libraries(marvel_network GLEW ${FREETYPE_LIBRARIES} glfw ${GLFW_LIBR
 add_custom_command(TARGET marvel_network POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:marvel_network>/shaders)
+
+add_custom_command(TARGET marvel_network POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:marvel_network>)

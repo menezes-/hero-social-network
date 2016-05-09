@@ -25,6 +25,26 @@ void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) 
     glBindVertexArray(0);
 }
 
+void makeCircle(std::vector<CircleVertice> &vertex, const glm::vec2 &center, const glm::vec3 &color, int fragments) {
+    static int radius = 200;
+
+    GLfloat twicePI = 2.0f * PI;
+
+    GLfloat x = center.x;
+    GLfloat y = center.y;
+    for (int i = 0; i < fragments; ++i) {
+
+        vertex.emplace_back(CircleVertice{
+                x + (radius * std::cos(i * twicePI / fragments)),
+                y + (radius * std::sin(i * twicePI / fragments)),
+                0.0f,
+                color.r,
+                color.g,
+                color.b,
+        });
+    }
+}
+
 Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color) {
 
     return Triangle {
@@ -72,10 +92,13 @@ void Scene::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     primitive->enable();
 
-    glBindVertexArray(trigVAO);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(trigVertexCount));
-    glBindVertexArray(0);
+    GLuint VAO = config.UseCircle ? circleVAO : trigVAO;
+    std::size_t size = config.UseCircle ? circleVertexCount : trigVertexCount;
+    GLenum shape = config.UseCircle ? GL_LINES : GL_TRIANGLES;
 
+    glBindVertexArray(VAO);
+    glDrawArrays(shape, 0, static_cast<GLsizei>(size));
+    glBindVertexArray(0);
 
     glBindVertexArray(lineVAO);
     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lineVertexCount));
@@ -86,12 +109,10 @@ void Scene::draw() {
         text->enable();
         glBindVertexArray(textVAO);
         glBindTexture(GL_TEXTURE_2D, fontAtlas.getTexture());
-        auto size = static_cast<GLsizei>(textVertexCount); //cada quad tem 6 vertices
-        glDrawArrays(GL_TRIANGLES, 0, size);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(textVertexCount));
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-
 }
 
 void Scene::processInput(double dt) {
@@ -124,7 +145,6 @@ void Scene::processInput(double dt) {
     if (Keys[GLFW_KEY_K]) {
         showLetters = true;
     }
-
 }
 
 void Scene::zoom(float scale) {
@@ -157,7 +177,6 @@ void Scene::resetCamera() {
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     updateViewMatrix();
     adjustCameraSpeed();
-
 }
 
 void Scene::moveCamera(CameraDirection direction, float deltaTime) {
@@ -196,11 +215,12 @@ glm::vec3 Scene::genColor() {
     return glm::vec3{red / 255.0f, blue / 255.0f, green / 255.0f};
 }
 
-void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
+void Scene::fromGraph(const Graph &graph, Mode mode) {
     auto colors = std::unordered_map<std::string, glm::vec3>();
     auto positions = std::unordered_map<std::string, glm::vec2>();
     auto t_drawed = std::vector<bool>(graph.vertices_size, false);
     auto triangles = std::vector<Triangle>{};
+    auto circles = std::vector<CircleVertice>{};
     auto lines = std::vector<Line>{};
     auto texts = std::vector<TextVertice>{};
     int e_counter = 0;
@@ -263,7 +283,11 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto pos1 = getPos(name1, i);
                 auto color1 = getColor(name1);
                 if (!t_drawed[i]) {
-                    triangles.emplace_back(makeTriangle(pos1, color1));
+                    if (config.UseCircle) {
+                        makeCircle(circles, pos1, color1, config.CircleFragments);
+                    } else {
+                        triangles.emplace_back(makeTriangle(pos1, color1));
+                    }
                     fontAtlas.makeText(texts, pos1, color1, name1);
                 }
 
@@ -271,13 +295,17 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto pos2 = getPos(name2, j);
                 auto color2 = getColor(name2);
                 if (!t_drawed[j]) {
-                    triangles.emplace_back(makeTriangle(pos2, color2));
+                    if (config.UseCircle) {
+                        makeCircle(circles, pos2, color2, config.CircleFragments);
+                    } else {
+                        triangles.emplace_back(makeTriangle(pos2, color2));
+                    }
                     fontAtlas.makeText(texts, pos2, color2, name2);
                 }
+
                 lines.emplace_back(makeLine(pos1, pos2, color2, color1));
 
-
-                if (e_counter > limit) {
+                if (e_counter > config.EdgeLimit) {
                     goto fim;
                 }
                 e_counter++;
@@ -289,13 +317,18 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
     }
     fim:
     fillPrimitiveBuff(lineVAO, lineVBO, lines);
-    fillPrimitiveBuff(trigVAO, trigVBO, triangles);
-
-    trigVertexCount = triangles.size() * 3; // numero de vertices: total de triangules * 3 (tres vertices por triangulo)
-    lineVertexCount = lines.size() * 2; // 2 vertices por linha, numero_de_linhas*2
-    textVertexCount = texts.size() * 6; // 6 vertices, 3 triangulos, 1 quad para a textura
+    if (config.UseCircle) {
+        circleVertexCount = circles.size() * 2;
+        fillPrimitiveBuff(circleVAO, circleVBO, circles);
+    } else {
+        trigVertexCount =
+                triangles.size() * 3; // numero de vertices: total de triangules * 3 (tres vertices por triangulo)
+        fillPrimitiveBuff(trigVAO, trigVBO, triangles);
+    }
     fillTextBuff(texts);
 
+    lineVertexCount = lines.size() * 2; // 2 vertices por linha, numero_de_linhas*2
+    textVertexCount = texts.size() * 6; // 6 vertices, 2 triangulos, 1 quad para a textura
 }
 
 void Scene::fillTextBuff(const std::vector<TextVertice> txtVertex) {
@@ -318,8 +351,6 @@ void Scene::fillTextBuff(const std::vector<TextVertice> txtVertex) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-
 }
 
 void Scene::updateViewMatrix() {
@@ -329,8 +360,6 @@ void Scene::updateViewMatrix() {
 
     text->enable();
     text->setMatrix4fv("view", glm::value_ptr(view));
-
-
 }
 
 void Scene::updateProjectionMatrix() {
@@ -340,20 +369,17 @@ void Scene::updateProjectionMatrix() {
 
     text->enable();
     text->setMatrix4fv("projection", glm::value_ptr(projection));
-
 }
 
 Scene::~Scene() {
 
-    GLuint vaos[] = {trigVAO, lineVAO, textVAO};
-    GLuint vbos[] = {trigVBO, lineVBO, textVBO};
+    GLuint vaos[] = {config.UseCircle ? circleVAO : trigVAO, lineVAO, textVAO};
+    GLuint vbos[] = {config.UseCircle ? circleVBO : trigVBO, lineVBO, textVBO};
 
     glDeleteVertexArrays(3, vaos);
     glDeleteBuffers(3, vbos);
-
 }
 
 void Scene::adjustCameraSpeed() {
     cameraSpeed = glm::vec3{windowWidth * 2, windowHeight * 2, 1};
 }
-

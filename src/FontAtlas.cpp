@@ -113,7 +113,6 @@ void FontAtlas::setupAtlas() {
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 GLuint FontAtlas::getTexture() const {

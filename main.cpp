@@ -3,8 +3,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <chrono>
-#include <thread>
 #include "include/FontAtlas.hpp"
 #include "include/Graph.hpp"
 #include "include/Scene.hpp"
@@ -99,7 +97,7 @@ int main(int argc, char *argv[]) {
     glfwSetWindowUserPointer(window, &scene);
 
     Graph graph{config.GraphPath};
-    scene.fromGraph(graph, static_cast<Mode>(config.Mode), config.EdgeLimit);
+    scene.fromGraph(graph, static_cast<Mode>(config.Mode));
 
     double deltaTime;
     double lastFrame = 0.0f;

@@ -27,5 +27,4 @@ struct Config {
 
     static Config loadConfig(const char *path);
     static Config loadConfig(const std::string& path);
-
 };

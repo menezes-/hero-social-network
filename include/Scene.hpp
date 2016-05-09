@@ -26,6 +26,15 @@ enum CameraDirection : short {
     RIGHT
 };
 
+struct CircleVertice {
+    GLfloat x;
+    GLfloat y;
+    GLfloat z;
+    GLfloat r;
+    GLfloat g;
+    GLfloat b;
+};
+
 using Triangle = std::array<GLfloat, 18>;
 using Line = std::array<GLfloat, 12>;
 
@@ -36,6 +45,8 @@ Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
 
 Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
               const glm::vec3 &color2);
+
+void makeCircle(std::vector<CircleVertice> &vertex, const glm::vec2 &center, const glm::vec3 &color, int fragments);
 
 class Scene {
 private:
@@ -61,9 +72,9 @@ private:
     int oWidth, oHeight; // tamanho da window original
     GLfloat windowWidth, windowHeight;
 
-    GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO;
+    GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO, circleVAO, circleVBO;
 
-    std::size_t trigVertexCount = 0, lineVertexCount = 0, textVertexCount = 0;
+    std::size_t circleVertexCount = 0, trigVertexCount = 0, lineVertexCount = 0, textVertexCount = 0;
 
     glm::vec2 genPosition();
 
@@ -72,6 +83,8 @@ private:
     void updateViewMatrix();
 
     void updateProjectionMatrix();
+
+    void adjustCameraSpeed();
 
     void fillTextBuff(const std::vector<TextVertice> txtVertex);
 
@@ -92,14 +105,12 @@ public:
 
     void resetCamera();
 
-    void fromGraph(const Graph &graph, Mode mode, int limit = 1000);
+    void fromGraph(const Graph &graph, Mode mode);
 
     void processInput(double deltaTime);
 
     std::bitset<1024> Keys{false};
 
     virtual ~Scene();
-
-    void adjustCameraSpeed();
 };
 

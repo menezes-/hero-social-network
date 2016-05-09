@@ -36,11 +36,9 @@ static int handler(void *cfg, const char *section, const char *name, const char 
     if (string_name == "multisamples") {
         config->MultiSamples = to_bool(string_value);
     } else if (string_name == "numberofsamples") {
-
         if (to_int(string_value, pvalue)) {
             config->NumberOfSamples = pvalue;
         }
-
     } else if (string_name == "width") {
         if (to_int(string_value, pvalue)) {
             config->Width = pvalue;
@@ -68,9 +66,7 @@ static int handler(void *cfg, const char *section, const char *name, const char 
     }
 
     return 1;
-
 }
-
 
 Config Config::loadConfig(const char *path) {
     auto cfg = Config();
@@ -79,4 +75,3 @@ Config Config::loadConfig(const char *path) {
     }
     return cfg;
 }
-

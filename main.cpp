@@ -36,14 +36,12 @@ static GLFWwindow *setupGraphics(const Config& config) {
         throw std::runtime_error{"Nao foi possivel inicializar a biblioteca GLFW 3"};
     }
 
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     if(config.MultiSamples){
         glfwWindowHint(GLFW_SAMPLES, config.NumberOfSamples);
     }
-
 
     auto window = glfwCreateWindow(config.Width, config.Height, "Marvel Social Network", nullptr, nullptr);
 
@@ -97,7 +95,7 @@ int main(int argc, char *argv[]) {
 
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
-    auto scene = Scene{width, height, atlas};
+    auto scene = Scene{width, height, atlas, config};
     glfwSetWindowUserPointer(window, &scene);
 
     Graph graph{config.GraphPath};
@@ -105,7 +103,6 @@ int main(int argc, char *argv[]) {
 
     double deltaTime;
     double lastFrame = 0.0f;
-
 
     while (!glfwWindowShouldClose(window)) {
         auto currentFrame = glfwGetTime();

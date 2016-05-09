@@ -25,9 +25,28 @@ void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data) 
     glBindVertexArray(0);
 }
 
-Scene::Scene(int width, int height, const FontAtlas &fontAtlas)
+Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color) {
+
+    return Triangle {
+            pos.x, pos.y + 200, 0.0f, color.r, color.g, color.b,
+            pos.x - 200, pos.y - 200, 0.0f, color.r, color.g, color.b,
+            pos.x + 200, pos.y - 200, 0.0f, color.r, color.g, color.b
+    };
+}
+
+Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
+              const glm::vec3 &color2) {
+
+    return Line {
+            pos.x, pos.y, 0.0f, color.r, color.g, color.b,
+            pos2.x, pos2.y, 0.0f, color2.r, color2.g, color2.b
+    };
+}
+
+Scene::Scene(int width, int height, const FontAtlas &fontAtlas, const Config &config)
         : fontAtlas{fontAtlas}, projection{
-        glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height))}, oWidth{width}, oHeight{height} {
+        glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height))}, oWidth{width}, oHeight{height},
+          config{config} {
 
     mt = radomNumberGenerator();
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -78,24 +97,6 @@ void Scene::draw() {
 
 }
 
-Triangle Scene::makeTriangle(const glm::vec2 &pos, const glm::vec3 &color) {
-
-    return Triangle {
-            pos.x, pos.y + 200, 0.0f, color.r, color.g, color.b,
-            pos.x - 200, pos.y - 200, 0.0f, color.r, color.g, color.b,
-            pos.x + 200, pos.y - 200, 0.0f, color.r, color.g, color.b
-    };
-}
-
-Line Scene::makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
-                     const glm::vec3 &color2) {
-
-    return Line {
-            pos.x, pos.y, 0.0f, color.r, color.g, color.b,
-            pos2.x, pos2.y, 0.0f, color2.r, color2.g, color2.b
-    };
-}
-
 void Scene::makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto) {
 
 
@@ -115,7 +116,7 @@ void Scene::makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::st
         x += info.Advance.x;
         y += info.Advance.y;
 
-        if (!windowWidth || !windowHeight) { // caracteres que não tem tamanho são pulados, tipo espaço
+        if (!windowWidth || !windowHeight) { // caracteres que não tem tamanho são pulados, tipo espaço e caracteres de controle
             continue;
         }
 
@@ -399,6 +400,6 @@ Scene::~Scene() {
 }
 
 void Scene::adjustCameraSpeed() {
-    cameraSpeed = glm::vec3{ windowWidth*2,  windowHeight*2, 1};
+    cameraSpeed = glm::vec3{windowWidth * 2, windowHeight * 2, 1};
 }
 

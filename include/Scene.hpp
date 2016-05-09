@@ -4,6 +4,7 @@
 #include "Drawable.hpp"
 #include "Graph.hpp"
 #include "FontAtlas.hpp"
+#include "Config.hpp"
 #include <memory>
 #include <vector>
 #include <bitset>
@@ -41,12 +42,16 @@ using Line = std::array<GLfloat, 12>;
 
 template<class T, class A>
 void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data);
+Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
+Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
+              const glm::vec3 &color2);
 
 class Scene {
 private:
     std::unique_ptr<Shader> primitive;
     std::unique_ptr<Shader> text;
     const FontAtlas &fontAtlas;
+    const Config &config;
 
     glm::vec3 cameraPos;
     glm::vec3 cameraFront{0, 0, -3};
@@ -82,18 +87,13 @@ private:
     void fillTextBuff();
 
 public:
-    Scene(int width, int height, const FontAtlas &);
+    Scene(int width, int height, const FontAtlas &, const Config &);
 
     Scene(Scene &&) = default;
 
     Scene &operator=(Scene &&) = default;
 
-    Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
-                  const glm::vec3 &color2);
-
     void makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto);
-
-    Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
 
     void moveCamera(CameraDirection direction, float deltaTime);
 

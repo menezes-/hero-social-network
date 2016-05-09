@@ -26,23 +26,14 @@ enum CameraDirection : short {
     RIGHT
 };
 
-struct TextVertice {
-    GLfloat TextX; // posição na tela
-    GLfloat TextY; // posição na tela
-    GLfloat TextureX; // posição da textura
-    GLfloat TextureY; // posição da textura
-    //cores
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-};
-
 using Triangle = std::array<GLfloat, 18>;
 using Line = std::array<GLfloat, 12>;
 
 template<class T, class A>
 void fillPrimitiveBuff(GLuint &VAO, GLuint &VBO, const std::vector<T, A> &data);
+
 Triangle makeTriangle(const glm::vec2 &pos, const glm::vec3 &color);
+
 Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &color,
               const glm::vec3 &color2);
 
@@ -65,8 +56,6 @@ private:
     std::uniform_int_distribution<> dist_pos;
     std::uniform_int_distribution<> dist_color;
 
-    std::vector<TextVertice> txtVertex;
-
     bool showLetters = false;
 
     int oWidth, oHeight; // tamanho da window original
@@ -74,7 +63,7 @@ private:
 
     GLuint trigVAO, trigVBO, lineVAO, lineVBO, textVAO, textVBO;
 
-    std::size_t trigVertexCount = 0, lineVertexCount = 0;
+    std::size_t trigVertexCount = 0, lineVertexCount = 0, textVertexCount = 0;
 
     glm::vec2 genPosition();
 
@@ -84,7 +73,7 @@ private:
 
     void updateProjectionMatrix();
 
-    void fillTextBuff();
+    void fillTextBuff(const std::vector<TextVertice> txtVertex);
 
 public:
     Scene(int width, int height, const FontAtlas &, const Config &);
@@ -92,8 +81,6 @@ public:
     Scene(Scene &&) = default;
 
     Scene &operator=(Scene &&) = default;
-
-    void makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto);
 
     void moveCamera(CameraDirection direction, float deltaTime);
 

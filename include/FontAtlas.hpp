@@ -4,11 +4,22 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <array>
+#include <vector>
 
 constexpr int ASCII_START = 32;
 constexpr int ASCII_END = 128;
 constexpr unsigned int MAX_TEXTURE_WIDTH = 2048;
 
+struct TextVertice {
+    GLfloat TextX; // posição na tela
+    GLfloat TextY; // posição na tela
+    GLfloat TextureX; // posição da textura
+    GLfloat TextureY; // posição da textura
+    //cores
+    GLfloat r;
+    GLfloat g;
+    GLfloat b;
+};
 
 struct CharacterInfo {
     glm::vec2 Size;       // tamanho do glyph
@@ -48,6 +59,8 @@ public:
     FontAtlas(FontAtlas &&) = default;
 
     FontAtlas &operator=(FontAtlas &&) = default;
+
+    void makeText(std::vector<TextVertice> &txtVertex, const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto) const;
 
     virtual ~FontAtlas();
 };

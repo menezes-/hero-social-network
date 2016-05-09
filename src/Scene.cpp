@@ -44,9 +44,8 @@ Line makeLine(const glm::vec2 &pos, const glm::vec2 &pos2, const glm::vec3 &colo
 }
 
 Scene::Scene(int width, int height, const FontAtlas &fontAtlas, const Config &config)
-        : fontAtlas{fontAtlas}, projection{
-        glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height))}, oWidth{width}, oHeight{height},
-          config{config} {
+        : fontAtlas{fontAtlas}, config{config}, projection{
+        glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height))}, oWidth{width}, oHeight{height} {
 
     mt = radomNumberGenerator();
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -60,8 +59,6 @@ Scene::Scene(int width, int height, const FontAtlas &fontAtlas, const Config &co
 
     windowWidth = oWidth;
     windowHeight = oHeight;
-
-    txtVertex = std::vector<TextVertice>{};
 
     cameraPos = glm::vec3{windowWidth / 2, windowHeight / 2, 0};
     updateProjectionMatrix();
@@ -89,57 +86,12 @@ void Scene::draw() {
         text->enable();
         glBindVertexArray(textVAO);
         glBindTexture(GL_TEXTURE_2D, fontAtlas.getTexture());
-        auto size = static_cast<GLsizei>(txtVertex.size()) * 6; //cada quad tem 6 vertices
+        auto size = static_cast<GLsizei>(textVertexCount); //cada quad tem 6 vertices
         glDrawArrays(GL_TRIANGLES, 0, size);
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-}
-
-void Scene::makeText(const glm::vec2 &pos, const glm::vec3 &color, const std::string &texto) {
-
-
-    auto x = pos.x;
-    auto y = pos.y;
-    auto ci = fontAtlas.getCi();
-    auto atlas_width = fontAtlas.getWidth();
-    auto atlas_height = fontAtlas.getHeight();
-
-    for (const auto &ch: texto) {
-        auto info = ci[ch];
-
-        GLfloat xpos = x + info.Bearing.x;
-        GLfloat ypos = -y - info.Bearing.y;
-
-        //vai pra próxima posição
-        x += info.Advance.x;
-        y += info.Advance.y;
-
-        if (!windowWidth || !windowHeight) { // caracteres que não tem tamanho são pulados, tipo espaço e caracteres de controle
-            continue;
-        }
-
-        GLfloat w = info.Size.x;
-        GLfloat h = info.Size.y;
-
-        GLfloat offsetx = info.OffsetX;
-
-        txtVertex.emplace_back(TextVertice{xpos, -ypos, offsetx, 0, color.r, color.g, color.b});
-
-        txtVertex.emplace_back(
-                TextVertice{xpos + w, -ypos, offsetx + w / atlas_width, 0, color.r, color.g, color.b});
-        txtVertex.emplace_back(
-                TextVertice{xpos, -ypos - h, offsetx, h / atlas_height, color.r, color.g, color.b});
-        txtVertex.emplace_back(
-                TextVertice{xpos + w, -ypos, offsetx + w / atlas_width, 0, color.r, color.g, color.b});
-        txtVertex.emplace_back(
-                TextVertice{xpos, -ypos - h, offsetx, h / atlas_height, color.r, color.g, color.b});
-        txtVertex.emplace_back(
-                TextVertice{xpos + w, -ypos - h, offsetx + w / atlas_width, h / atlas_height, color.r,
-                            color.g, color.b});
-
-    }
 }
 
 void Scene::processInput(double dt) {
@@ -250,6 +202,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
     auto t_drawed = std::vector<bool>(graph.vertices_size, false);
     auto triangles = std::vector<Triangle>{};
     auto lines = std::vector<Line>{};
+    auto texts = std::vector<TextVertice>{};
     int e_counter = 0;
     std::size_t c = 0;
     auto centerX = oWidth / 2;
@@ -311,7 +264,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto color1 = getColor(name1);
                 if (!t_drawed[i]) {
                     triangles.emplace_back(makeTriangle(pos1, color1));
-                    makeText(pos1, color1, name1);
+                    fontAtlas.makeText(texts, pos1, color1, name1);
                 }
 
                 auto name2 = graph.getName(j);
@@ -319,7 +272,7 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
                 auto color2 = getColor(name2);
                 if (!t_drawed[j]) {
                     triangles.emplace_back(makeTriangle(pos2, color2));
-                    makeText(pos2, color2, name2);
+                    fontAtlas.makeText(texts, pos2, color2, name2);
                 }
                 lines.emplace_back(makeLine(pos1, pos2, color2, color1));
 
@@ -340,11 +293,12 @@ void Scene::fromGraph(const Graph &graph, Mode mode, int limit) {
 
     trigVertexCount = triangles.size() * 3; // numero de vertices: total de triangules * 3 (tres vertices por triangulo)
     lineVertexCount = lines.size() * 2; // 2 vertices por linha, numero_de_linhas*2
-    fillTextBuff();
+    textVertexCount = texts.size() * 6; // 6 vertices, 3 triangulos, 1 quad para a textura
+    fillTextBuff(texts);
 
 }
 
-void Scene::fillTextBuff() {
+void Scene::fillTextBuff(const std::vector<TextVertice> txtVertex) {
 
     glGenVertexArrays(1, &textVAO);
     glGenBuffers(1, &textVBO);

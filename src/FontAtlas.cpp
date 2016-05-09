@@ -132,6 +132,46 @@ unsigned int FontAtlas::getHeight() const {
     return atlas_height;
 }
 
+void FontAtlas::makeText(std::vector<TextVertice> &txtVertex, const glm::vec2 &pos, const glm::vec3 &color,
+                         const std::string &texto) const {
+    auto x = pos.x;
+    auto y = pos.y;
+
+    for (const auto &ch: texto) {
+        auto info = ci[ch];
+
+        GLfloat xpos = x + info.Bearing.x;
+        GLfloat ypos = -y - info.Bearing.y;
+
+        //vai pra próxima posição
+        x += info.Advance.x;
+        y += info.Advance.y;
+
+        if (!info.Size.x || !info.Size.y) { // caracteres que não tem tamanho são pulados, tipo espaço e caracteres de controle
+            continue;
+        }
+
+        GLfloat w = info.Size.x;
+        GLfloat h = info.Size.y;
+
+        GLfloat offsetx = info.OffsetX;
+
+        txtVertex.emplace_back(TextVertice{xpos, -ypos, offsetx, 0, color.r, color.g, color.b});
+
+        txtVertex.emplace_back(
+                TextVertice{xpos + w, -ypos, offsetx + w / atlas_width, 0, color.r, color.g, color.b});
+        txtVertex.emplace_back(
+                TextVertice{xpos, -ypos - h, offsetx, h / atlas_height, color.r, color.g, color.b});
+        txtVertex.emplace_back(
+                TextVertice{xpos + w, -ypos, offsetx + w / atlas_width, 0, color.r, color.g, color.b});
+        txtVertex.emplace_back(
+                TextVertice{xpos, -ypos - h, offsetx, h / atlas_height, color.r, color.g, color.b});
+        txtVertex.emplace_back(
+                TextVertice{xpos + w, -ypos - h, offsetx + w / atlas_width, h / atlas_height, color.r,
+                            color.g, color.b});
+    }
+
+}
 
 FontAtlas::~FontAtlas() {
     glDeleteTextures(1, &texture);

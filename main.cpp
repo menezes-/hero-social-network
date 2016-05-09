@@ -29,7 +29,25 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
     }
 }
 
-static GLFWwindow *setupGraphics(const Config& config) {
+static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    auto scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
+        scene->resetCamera();
+    }
+}
+
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+
+    auto scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
+    if(yoffset > 0) {
+        scene->zoom(0.8f);
+    } else {
+        scene->zoom(1.2f);
+    }
+
+}
+
+static GLFWwindow *setupGraphics(const Config &config) {
     if (!glfwInit()) {
         throw std::runtime_error{"Nao foi possivel inicializar a biblioteca GLFW 3"};
     }
@@ -37,7 +55,7 @@ static GLFWwindow *setupGraphics(const Config& config) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    if(config.MultiSamples){
+    if (config.MultiSamples) {
         glfwWindowHint(GLFW_SAMPLES, config.NumberOfSamples);
     }
 
@@ -57,6 +75,8 @@ static GLFWwindow *setupGraphics(const Config& config) {
 
     glfwSetErrorCallback(error_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     //configua o viewport
     int width, height;
@@ -66,10 +86,10 @@ static GLFWwindow *setupGraphics(const Config& config) {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (config.MultiSamples){
+    if (config.MultiSamples) {
         glEnable(GL_MULTISAMPLE);
     }
-    if (config.SmoothLines){
+    if (config.SmoothLines) {
         glEnable(GL_LINE_SMOOTH);
     }
     glLineWidth(config.LineWidth);
@@ -81,12 +101,14 @@ static GLFWwindow *setupGraphics(const Config& config) {
 int main(int argc, char *argv[]) {
 
     std::string configFile{"config.ini"};
-    if(argc > 1){
+    if (argc > 1) {
         configFile = std::string{argv[1]};
     }
 
     auto config = Config::loadConfig(configFile);
-
+#ifndef NDEBUG
+    config.EdgeLimit = 1000;
+#endif
     auto window = setupGraphics(config);
 
     auto atlas = FontAtlas{config.FontSize, config.FontPath};

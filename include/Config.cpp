@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 // tirado de: http://stackoverflow.com/questions/3613284/c-stdstring-to-boolean
 static bool to_bool(std::string &str) {
@@ -22,6 +23,11 @@ static bool to_int(const std::string &str, int &value) {
     } catch (const std::exception &e) {
         return false;
     }
+}
+
+static bool file_exists(const std::string &string) {
+    std::ifstream f(string);
+    return f.good();
 }
 
 static int handler(void *cfg, const char *section, const char *name, const char *value) {
@@ -61,6 +67,24 @@ static int handler(void *cfg, const char *section, const char *name, const char 
         }
     } else if (string_name == "usecircle") {
         config->UseCircle = to_bool(string_value);
+    } else if (string_name == "smoothlines") {
+        config->SmoothLines = to_bool(string_value);
+    } else if (string_name == "fontpath") {
+        if (file_exists(string_value)) {
+            config->FontPath = string_value;
+        }
+    } else if (string_name == "fontsize") {
+        if (to_int(string_value, pvalue) && pvalue > 0) {
+            config->FontSize = pvalue;
+        }
+    } else if (string_name == "mode") {
+        if (to_int(string_value, pvalue) && pvalue >= 1 && pvalue <= 3) {
+            config->Mode = pvalue;
+        }
+    } else if (string_name == "graphpath") {
+        if (file_exists(string_value)) {
+            config->GraphPath = string_value;
+        }
     } else {
         return 0;
     }
@@ -71,7 +95,12 @@ static int handler(void *cfg, const char *section, const char *name, const char 
 Config Config::loadConfig(const char *path) {
     auto cfg = Config();
     if (ini_parse(path, handler, &cfg) < 0) {
-        std::cerr << "WARNING::CONFIGURATION: Nao foi possivel carregar o arquivo de configuração. " << path << ". Usando defaults." << std::endl;
+        std::cerr << "WARNING::CONFIGURATION: Nao foi possivel carregar o arquivo de configuração. " << path <<
+        ". Usando defaults." << std::endl;
     }
     return cfg;
+}
+
+Config Config::loadConfig(const std::string &path) {
+    return loadConfig(path.c_str());
 }

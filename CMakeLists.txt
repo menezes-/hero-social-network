@@ -32,6 +32,11 @@ if (NOT OPENGL_FOUND)
 endif ()
 #======================OPENGL======================
 
+#======================INI=====================
+add_library(INIH STATIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/ini.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ini.h)
+#======================INI=====================
+
 #======================GLEW=====================
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/GLEW/include)
 
@@ -70,7 +75,9 @@ set(SOURCE_FILES
         include/utils.hpp
         include/dbg.hpp
         src/FontAtlas.cpp
-        include/FontAtlas.hpp)
+        include/FontAtlas.hpp
+        include/Config.cpp
+        include/Config.hpp)
 
 add_executable(marvel_network ${SOURCE_FILES})
 
@@ -85,7 +92,7 @@ else ()
     add_definitions(-DCSV_IO_NO_THREAD)
 endif ()
 
-target_link_libraries(marvel_network GLEW ${FREETYPE_LIBRARIES} glfw ${GLFW_LIBRARIES})
+target_link_libraries(marvel_network GLEW ${FREETYPE_LIBRARIES} glfw ${GLFW_LIBRARIES} INIH)
 
 add_custom_command(TARGET marvel_network POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
